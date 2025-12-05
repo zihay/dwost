@@ -1,0 +1,114 @@
+[build-system]
+requires = [
+    "scikit-build-core>=0.5",
+    "nanobind>=1.8.0",
+]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "diff_wost"
+version = "0.1.0"
+description = "Robust Derivative Estimation with Walk on Stars"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.9"
+authors = [
+    { name = "Zihan Yu" },
+]
+keywords = ["pde", "walk-on-stars", "differentiable", "monte-carlo"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+]
+
+dependencies = [
+    "numpy>=1.20",
+    "drjit>=0.4.0",
+    "pillow>=9.0.0",
+    "matplotlib>=3.5.0",
+    "imageio>=2.20.0",
+    "imageio[freeimage]",
+    "scikit-image>=0.19.0",
+    "trimesh>=3.20.0",
+    "tqdm>=4.60.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+]
+viz = [
+    "polyscope>=2.0.0",
+]
+all = [
+    "diff_wost[dev,viz]",
+]
+
+[project.urls]
+Homepage = "https://projects.shuangz.com/grad-wost-sa25/"
+Paper = "https://projects.shuangz.com/grad-wost-sa25/paper.pdf"
+
+[tool.scikit-build]
+cmake.minimum-version = "3.15"
+wheel.packages = ["diff_wost"]
+build-dir = "build/{wheel_tag}"
+
+[tool.scikit-build.cmake.define]
+CMAKE_BUILD_TYPE = "Release"
+
+[tool.black]
+line-length = 88
+target-version = ["py39", "py310", "py311", "py312"]
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+    | \.venv
+    | build
+    | dist
+    | \.eggs
+)/
+'''
+
+[tool.ruff]
+line-length = 88
+target-version = "py39"
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # Pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line too long (handled by black)
+    "B008",  # do not perform function calls in argument defaults
+]
+
+[tool.ruff.isort]
+known-first-party = ["diff_wost"]
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --tb=short"
+
