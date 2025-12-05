@@ -30,8 +30,6 @@ sudo apt install libeigen3-dev cmake
 pip install -e .
 ``` 
 
-Python dependencies (NumPy, Dr.Jit, Matplotlib, etc.) will be installed automatically.
-
 ## Examples
 
 ```bash
