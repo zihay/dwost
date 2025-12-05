@@ -7,7 +7,7 @@ Zihan Yu, Rohan Sawhney, Bailey Miller, Lifan Wu, Shuang Zhao
 
 [[Project Page]](https://projects.shuangz.com/grad-wost-sa25/) [[Paper]](https://projects.shuangz.com/grad-wost-sa25/paper.pdf)
 
-## Codebase Overview
+## Overview
 
 This implementation uses a hybrid C++/Python architecture. The BVH (Bounding Volume Hierarchy) and SNCH (Spatial Normal Cone Hierarchy) data structures are constructed in C++ (adapted from [FCPW](https://github.com/rohan-sawhney/fcpw)) and exposed to Python via nanobind. Geometry traversal and Monte Carlo solvers are implemented in Python with [Dr.Jit](https://github.com/mitsuba-renderer/drjit) for GPU-accelerated parallel evaluation.
 
