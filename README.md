@@ -5,7 +5,7 @@ This repository contains the implementation for the paper:
 **Robust Derivative Estimation with Walk on Stars**  
 Zihan Yu, Rohan Sawhney, Bailey Miller, Lifan Wu, Shuang Zhao
 
-[[Project Page]](https://projects.shuangz.com/grad-wost-sa25/) [[Paper]](https://projects.shuangz.com/grad-wost-sa25/paper.pdf)
+[[Project Page]](https://projects.shuangz.com/grad-wost-sa25/) [[Paper]](https://projects.shuangz.com/grad-wost-sa25/grad-wost-sa25.pdf)
 
 ## Overview
 
