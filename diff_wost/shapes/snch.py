@@ -636,7 +636,7 @@ class SNCH:
                             )
                             _its = prim.ray_intersect(x, v, r_max)
                             if _its.valid & (_its.d < r_max):
-                                r_max = its.d
+                                r_max = _its.d
                                 its = _its
                             j += 1
                     else:
