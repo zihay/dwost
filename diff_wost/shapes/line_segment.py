@@ -45,7 +45,10 @@ class LineSegment:
         return d <= R
 
     @dr.syntax
-    def ray_intersect(self, x: Array2, d: Array2, r_max: Float):
+    def _ray_intersect_nonwatertight(self, x: Array2, d: Array2, r_max: Float):
+        """
+        Initial ray-segment intersection test. 
+        """
         its = dr.zeros(Intersection)
         u = self.a - x
         v = self.b - self.a
@@ -70,6 +73,79 @@ class LineSegment:
                         type=self.type,
                     )
         return its
+
+    @dr.syntax
+    def ray_intersect_watertight(self, x: Array2, d: Array2, r_max: Float):
+        """
+        Watertight ray-segment intersection test using shear and permutation, adapted from
+        "Watertight Ray/Triangle Intersection" by Woop, Benthin, and Wald (2013).
+        """
+        its = dr.zeros(Intersection)
+
+        # 1. Translate endpoints to ray origin
+        Ax = self.a.x - x.x
+        Ay = self.a.y - x.y
+        Bx = self.b.x - x.x
+        By = self.b.y - x.y
+
+        # 2. Permute dimensions: pick dominant axis to maximise precision
+        #    and avoid dividing by a near-zero component
+        u_A = Float(0.0)
+        v_A = Float(0.0)
+        u_B = Float(0.0)
+        v_B = Float(0.0)
+        Du = Float(0.0)
+        Dv = Float(0.0)
+        if dr.abs(d.x) > dr.abs(d.y):
+            u_A = Ay
+            v_A = Ax
+            u_B = By
+            v_B = Bx
+            Du = d.y
+            Dv = d.x
+        else:
+            u_A = Ax
+            v_A = Ay
+            u_B = Bx
+            v_B = By
+            Du = d.x
+            Dv = d.y
+
+        # 3. Shear-transform endpoints into ray-aligned space (ray passes through u=0)
+        shear = -Du / Dv
+        Au = u_A + v_A * shear
+        Bu = u_B + v_B * shear
+
+        # 4. Watertight straddling test (half-open interval):
+        #    endpoints must lie on strictly opposite sides of u=0.
+        #    A vertex shared by two adjacent segments will straddle in exactly one.
+        if (Au < 0.0) != (Bu < 0.0):
+            Av = v_A / Dv
+            Bv = v_B / Dv
+            denom = Bu - Au  # non-zero: Au and Bu have opposite signs
+            inv_denom = Float(1.0) / denom
+            t_val = (Av * Bu - Bv * Au) * inv_denom
+            s_val = -Au * inv_denom  # barycentric (0 at a, 1 at b)
+
+            if (t_val >= 0.0) & (t_val <= r_max):
+                its = Intersection(
+                    valid=Bool(True),
+                    p=x + d * t_val,
+                    n=self.normal(),
+                    t=s_val,
+                    d=dr.abs(t_val),
+                    prim_id=self.index,
+                    on_boundary=Bool(True),
+                    type=self.type,
+                )
+        return its
+    
+
+    def ray_intersect(self, x: Array2, d: Array2, r_max: Float, watertight: bool = True):
+        if watertight:
+            return self.ray_intersect_watertight(x, d, r_max)
+        else:
+            return self._ray_intersect_nonwatertight(x, d, r_max)
 
     @dr.syntax
     def closest_point(self, p: Array2):

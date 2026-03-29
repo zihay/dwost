@@ -611,7 +611,7 @@ class SNCH:
         return its
 
     @dr.syntax
-    def intersect(self, x: Array2, v: Array2, r_max: Float = Float(dr.inf)):
+    def intersect(self, x: Array2, v: Array2, r_max: Float = Float(dr.inf), watertight: bool = True):
         its = dr.zeros(Intersection)
         root_node = dr.gather(BVHNode, self.flat_tree, 0)
         hit, t_min, t_max = root_node.box.intersect(x, v, r_max)
@@ -634,7 +634,7 @@ class SNCH:
                             prim = dr.gather(
                                 LineSegment, self.primitives, reference_index
                             )
-                            _its = prim.ray_intersect(x, v, r_max)
+                            _its = prim.ray_intersect(x, v, r_max, watertight=watertight)
                             if _its.valid & (_its.d < r_max):
                                 r_max = _its.d
                                 its = _its

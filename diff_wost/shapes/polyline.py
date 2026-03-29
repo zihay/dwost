@@ -440,6 +440,7 @@ class Polyline:
         n: Array2 = Array2(0.0, 0.0),
         on_boundary: Bool = Bool(False),
         r_max: Float = Float(dr.inf),
+        watertight: bool = True,
     ) -> Intersection:
         its = dr.zeros(Intersection)
         p = dr.select(on_boundary, p - n * RayEpsilon, p)
@@ -448,7 +449,7 @@ class Polyline:
                 print("BVH is not built. Falling back to baseline.")
                 its = self.intersect_baseline(p, v, r_max)
             else:
-                its = self.bvh.intersect(p, v, r_max)
+                its = self.bvh.intersect(p, v, r_max, watertight=watertight)
         else:
             its = self.intersect_baseline(p, v, r_max)
 
