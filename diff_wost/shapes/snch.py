@@ -19,6 +19,7 @@ from diff_wost.render.interaction import (
     BoundarySamplingRecord,
     ClosestPointRecord,
     ClosestSilhouettePointRecord,
+    CountingHitsRecord,
     Intersection,
 )
 from diff_wost.shapes.bvh import BoundingBox, BVHNode, TraversalStack, project_to_plane
@@ -678,6 +679,73 @@ class SNCH:
                                 distance=t_min1,
                             )
         return its
+
+    @dr.syntax
+    def intersect_count(self, x: Array2, v: Array2, r_max: Float = Float(dr.inf), watertight: bool = True):
+        rec = dr.zeros(CountingHitsRecord)
+        root_node = dr.gather(BVHNode, self.flat_tree, 0)
+        hit, t_min, _ = root_node.box.intersect(x, v, r_max)
+        if hit:
+            stack = dr.alloc_local(TraversalStack, 64)
+            stack_ptr = dr.zeros(Int, dr.width(x))
+            stack[0] = TraversalStack(index=Int(0), distance=Float(t_min))
+            while stack_ptr >= 0:
+                stack_node = stack[UInt(stack_ptr)]
+                node_index = stack_node.index
+                curr_dist = stack_node.distance
+                stack_ptr -= 1
+                if curr_dist <= r_max:
+                    node = dr.gather(BVHNode, self.flat_tree, node_index)
+                    if node.n_references > 0:
+                        j = Int(0)
+                        while j < node.n_references:
+                            reference_index = node.reference_offset + j
+                            prim = dr.gather(
+                                LineSegment, self.primitives, reference_index
+                            )
+                            _its = prim.ray_intersect(x, v, r_max, watertight=watertight)
+                            if _its.valid:
+                                rec.count += dr.select(dr.dot(v, _its.n) < 0.0, Int(1), Int(-1))
+                            j += 1
+                    else:
+                        left_box = dr.gather(
+                            BoundingBox, self.flat_tree.box, node_index + 1
+                        )
+                        right_box = dr.gather(
+                            BoundingBox,
+                            self.flat_tree.box,
+                            node_index + node.second_child_offset,
+                        )
+                        hit0, t_min0, t_max0 = left_box.intersect(x, v, r_max)
+                        hit1, t_min1, t_max1 = right_box.intersect(x, v, r_max)
+                        if hit0 & hit1:
+                            closer = node_index + 1
+                            other = node_index + node.second_child_offset
+                            if t_min1 < t_min0:
+                                closer, other = other, closer
+                                t_min0, t_min1 = t_min1, t_min0
+                                t_max0, t_max1 = t_max1, t_max0
+
+                            stack_ptr += 1
+                            stack[UInt(stack_ptr)] = TraversalStack(
+                                index=other, distance=t_min1
+                            )
+                            stack_ptr += 1
+                            stack[UInt(stack_ptr)] = TraversalStack(
+                                index=closer, distance=t_min0
+                            )
+                        elif hit0:
+                            stack_ptr += 1
+                            stack[UInt(stack_ptr)] = TraversalStack(
+                                index=node_index + 1, distance=t_min0
+                            )
+                        elif hit1:
+                            stack_ptr += 1
+                            stack[UInt(stack_ptr)] = TraversalStack(
+                                index=node_index + node.second_child_offset,
+                                distance=t_min1,
+                            )
+        return rec
 
     @dr.syntax
     def branch_traversal_weight(self, x: Array2, R: Float, p: Array2):

@@ -231,6 +231,18 @@ class ClosestSilhouettePointRecord:
 
 
 @dataclass
+class CountingHitsRecord:
+    """Record of a signed ray-geometry intersection count query.
+
+    Attributes:
+        count: Signed number of intersections along the ray. +1 for front-face
+            hits (dot(ray, normal) < 0) and -1 for back-face hits.
+    """
+
+    count: Int = Int(0)
+
+
+@dataclass
 class ClosestSilhouettePointRecord3D:
     """Record of a 3D closest silhouette point query.
 

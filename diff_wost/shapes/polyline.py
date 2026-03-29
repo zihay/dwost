@@ -20,6 +20,7 @@ from diff_wost.render.interaction import (
     ClosestSilhouettePointRecord,
     Intersection,
     SilhouetteSamplingRecord,
+    CountingHitsRecord,
 )
 from diff_wost.shapes.bvh import BVH, BoundingBox, PointBVH
 from diff_wost.shapes.primitive import BoundaryType
@@ -464,6 +465,30 @@ class Polyline:
                 prim_id=Int(-1),
                 on_boundary=Bool(False),
             )
+        return its
+
+    @dr.syntax
+    def intersect_count(
+        self,
+        p: Array2,
+        v: Array2,
+        n: Array2 = Array2(0.0, 0.0),
+        on_boundary: Bool = Bool(False),
+        r_max: Float = Float(dr.inf),
+        watertight: bool = True,
+    ) -> CountingHitsRecord:
+        its = dr.zeros(CountingHitsRecord)
+        p = dr.select(on_boundary, p - n * RayEpsilon, p)
+        if self.use_bvh:
+            if self.bvh is None:
+                raise NotImplementedError(
+                    "Baseline intersect_count is not implemented."
+                )
+            else:
+                its = self.bvh.intersect_count(p, v, r_max, watertight=watertight)
+        else:
+            raise NotImplementedError("Baseline intersect_count is not implemented.")
+
         return its
 
     @dr.syntax
